@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\tabla_colaborador_alianza;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
+USE Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +26,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Blade::component('shared._card', 'card');
+        Schema::defaultStringLength(191);
+        if(Schema::hasTable('homestead')){//el nombre de la base de datos
+            $colabs = tabla_colaborador_alianza::get();
+        }else{
+            $default=new tabla_colaborador_alianza();
+            $colabs=[$default];
+        }
+        view()->share('colabs', $colabs);
     }
 }

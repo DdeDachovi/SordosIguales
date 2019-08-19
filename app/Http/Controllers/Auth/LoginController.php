@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Auth;
+use DB;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -25,7 +29,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/loginCorrecto';
 
     /**
      * Create a new controller instance.
@@ -35,5 +39,36 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    public function login(Request $request)
+    {
+        $rut_value = request()->rut;
+        $rut = DB::table('users')->where('rut', $rut_value)->value('rut');
+
+        $password = request()->password;
+        $clave = DB::table('users')->where('rut', $rut_value)->value('password');
+        //dd($rut_value, $rut,$password,$clave);
+
+        if ($rut == $rut_value && Hash::check($password, $clave)) {
+            if ($this->attemptLogin($request)) {
+                return $this->sendLoginResponse($request);
+            }
+        }
+
+        if ($rut != $rut_value || $password != $clave) {
+            return redirect()->back()->withInput()->withErrors('Rut o contraseña incorrectos');
+        }
+    }
+
+    public function logout(Request $request) {
+        Auth::logout();
+        return redirect('/login');
+    }
+
+    protected function credentials(Request $request)
+    {
+        $credentials = $request->only('rut', 'password');
+        return $credentials;
     }
 }
